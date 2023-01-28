@@ -1,0 +1,205 @@
+/* Constants for bricks */
+let NUM_ROWS = 8;
+let BRICK_TOP_OFFSET = 10;
+let BRICK_SPACING = 2;
+let NUM_BRICKS_PER_ROW = 10;
+let BRICK_HEIGHT = 10;
+let SPACE_FOR_BRICKS = getWidth() - (NUM_BRICKS_PER_ROW + 1) * BRICK_SPACING;
+let BRICK_WIDTH = SPACE_FOR_BRICKS / NUM_BRICKS_PER_ROW;
+let rect;
+let color = "red";
+let positionX = BRICK_SPACING;
+let positionY = BRICK_TOP_OFFSET;
+let count = 1;
+let numberOfBriks = NUM_ROWS * NUM_BRICKS_PER_ROW;
+let briksRemoved = 0;
+// let scoreTxt;
+// let scoreTxtInner;
+
+
+/* Constants for ball and paddle */
+let PADDLE_WIDTH = 80;
+let PADDLE_HEIGHT = 15;
+let PADDLE_OFFSET = 10;
+
+let BALL_RADIUS = 15;
+
+let ball;
+let paddle;
+
+let dx = 4;
+let dy = 4;
+
+let ballPositionX = getWidth()/2;
+let ballPositionY = getHeight()/2;
+
+let paddlePositionX = getWidth()/2 - PADDLE_WIDTH/2;
+let paddlePositionY = getHeight() - PADDLE_HEIGHT - PADDLE_OFFSET;
+
+let pause = 0;
+let loseCounter = 0;
+let whenToLose = 3;
+
+function start(){
+    mouseClickMethod(startPause);
+    drowSet();
+	makeBall_Rect();
+}
+
+// function score(){
+//     remove(scoreTxt);
+//     scoreTxtInner = "Score: " + briksRemoved;
+//     scoreTxt = new Text(scoreTxtInner, "15pt Arial");
+//     scoreTxt.setPosition(BRICK_SPACING, getHeight() - BRICK_SPACING * 15);
+//     scoreTxt.setColor("red");
+//     add(scoreTxt); 
+// }
+
+function startPause(){
+    if(pause % 2 == 0){
+        setTimer(bounse, 20);        
+    } else{
+        stopTimer(bounse);
+    }
+    pause++;
+}
+
+
+/* Functions for drawing Set */
+
+function drowSet(){
+    for(let j = 0; j < NUM_ROWS; j++){
+        drowLine()
+        
+        positionX = BRICK_SPACING;
+        positionY += BRICK_HEIGHT + BRICK_SPACING;
+        
+        changeColor()
+    }
+}
+
+function drowLine(){
+    for(let i = 0; i < NUM_BRICKS_PER_ROW; i ++){
+        rect = new Rectangle(BRICK_WIDTH, BRICK_HEIGHT);
+        rect.setPosition(positionX, positionY);
+        rect.setColor(color);
+        add(rect);
+        
+        positionX += BRICK_WIDTH + BRICK_SPACING;
+    }
+}
+
+function changeColor(){
+    if(count < 2){
+            color = "red";
+            count++;
+        } else if(count >=2 && count < 4){
+            color = "orange";
+            count++;
+        } else if(count >=4 && count < 6){
+            color = "green";
+            count++;
+        } else if(count >=6 && count < 8){
+            color = "blue";
+            count++;
+        }
+        if(count == 8) count = 0;
+}
+
+/* Functions for ball and paddle */
+
+function makeBall_Rect(){
+    ball = new Circle(BALL_RADIUS);
+    ball.setPosition(ballPositionX, ballPositionY)
+    add(ball);
+    
+    paddle = new Rectangle(PADDLE_WIDTH, PADDLE_HEIGHT);
+    paddle.setPosition(paddlePositionX, paddlePositionY);
+    add(paddle);
+    
+    mouseMoveMethod(movePaddle);
+}
+
+function bounse(){
+	checkWalls();
+	ball.move(dx, dy);
+    final();
+}
+
+function checkWalls(){
+	// Bounce off right wall
+	if(ball.getX() + ball.getRadius() > getWidth()){
+		dx = -dx;
+	}
+	// Bounce off left wall
+	if(ball.getX() - ball.getRadius() < 0){
+		dx = -dx;
+	}
+	// Bounce off top wall
+	if(ball.getY() - ball.getRadius() < 0){
+		dy = -dy;
+	}
+	// Bottom wall
+    fallsOff()
+}
+function fallsOff(){
+    if(ball.getY() > getHeight()){
+	    stopTimer(bounse);
+	    pause++;
+	    loseCounter++;
+	    if(loseCounter == whenToLose){
+	        stopTimer(bounse);
+	        gameOutcome("Game Over!");
+	        remove(ball);
+	    } else if(loseCounter < whenToLose){
+	       ball.setPosition(getWidth()/2, getHeight()/2); 
+	    }
+	}
+}
+
+
+function gameOutcome(text){
+    let txt = new Text(text, "30pt Arial");
+    txt.setPosition(getWidth()/2 - txt.getWidth()/2, getHeight()/2 - txt.getHeight()/2);
+    txt.setColor("black");
+    add(txt);
+    
+    let txt2 = new Text("Click to Reply", "20pt Arial");
+    txt2.setPosition(getWidth()/2 - txt2.getWidth()/2, getHeight()/2 - txt2.getHeight()/2 + txt2.getHeight()*2 );
+    txt2.setColor("black");
+    add(txt2);
+}
+
+function final(){
+    for (let time=0.1; time<2*Math.PI; time+=0.1){
+        let x= BALL_RADIUS*Math.cos(time);
+        let y= BALL_RADIUS*Math.sin(time);
+        let elem = getElementAt(ball.getX()+x, ball.getY()-y);
+        
+        if(elem != null && elem != ball && elem != paddle){
+            remove(elem);
+            dy = -dy;
+            dx = -dx;
+            briksRemoved++;
+            // score();
+            if(numberOfBriks == briksRemoved){
+                stopTimer(bounse);
+                gameOutcome("You Win");
+                remove(ball);
+            } 
+        } else if(elem == paddle){
+            dy = - dy;
+        }
+    }
+}
+
+function movePaddle(e){
+    paddlePositionX = e.getX() - PADDLE_WIDTH/2;
+    if(paddlePositionX >= getWidth() - PADDLE_WIDTH){
+        paddlePositionX = getWidth() - PADDLE_WIDTH;
+    }
+    if(paddlePositionX < 0){
+        paddlePositionX = 0;
+    }
+    paddle.setPosition(paddlePositionX, paddlePositionY);
+}
