@@ -12,4 +12,4 @@ Game Link: https://codehs.com/share/id/breakout-xz79tj/run
 
 My Progress:
 
-![My Progress](/Stats.JPGstats)
+![My Progress](/Stats.JPG)
